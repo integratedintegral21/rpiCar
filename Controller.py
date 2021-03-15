@@ -47,11 +47,21 @@ class StreamThread(Thread):
         self.lock.release()
 
 class MotionThread(Thread):
-    currentSpeed = 0
+    forSpeed = 0
+    intForSpeed = 0
+
     def __init__(self, view):
         Thread.__init__(self)
         self.motion = Motion(HBridges().TB6612FNG)
         self.view = view
+    
+    def run(self):
+        while True:
+            pass
+    
+    def setForSpeed():
+        pass
+
 
 
 class Controller(Thread):
@@ -65,8 +75,9 @@ class Controller(Thread):
         Thread.__init__(self)
         self.view = View()
         self.view.start() 
-        '''
-        self.motion = Motion(HBridges().TB6612FNG)        
+        
+        self.motion = Motion(HBridges().TB6612FNG)    
+        '''    
         self.motion.startDriving(1000, 1)
         time.sleep(1)
         self.motion.startDriving(1000, 0)
@@ -79,10 +90,10 @@ class Controller(Thread):
         self.motion.stopRotating()'''
         
         self.streamThread = StreamThread(self.view)
-        self.motionThread = MotionThread(self.view)
+        #self.motionThread = MotionThread(self.view)
 
         self.streamThread.start()
-        self.motionThread.start()
+        #self.motionThread.start()
 
     def run(self):
         try:      
@@ -100,6 +111,16 @@ class Controller(Thread):
                         print("Closing")
                         self.streamThread.stop()
                         break
+                    if self.view.interrupts["set_for_speed"] == 1:
+                        speed = self.view.getForSpeed()
+                        dir = 0
+                        if speed > 0:
+                            dir = 1
+                        speed = abs(speed)
+                        self.motion.startDriving(10.24*speed, dir)
+                        self.view.interrupts["set_for_speed"] = 0
+                self.view.interrupts["main"] = 0
+                    
         finally:
-            #self.motion.resetPinModes()
+            self.motion.resetPinModes()
             pass

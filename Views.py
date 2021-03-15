@@ -28,7 +28,9 @@ class View(Thread):
         self.interrupts = {
             "main": 0,
             "connect_camera": 0,
-            "abort_connection": 0
+            "abort_connection": 0,
+            "set_for_speed" : 0,
+            "set_rot_speed" : 0
         }
     
     def verifySocket(self):
@@ -74,6 +76,13 @@ class View(Thread):
         self.interrupts["main"] = 1
         self.closed = 1
         self.lock.release()
+    def forSpeedSliderMove(self,a):
+        self.lock.acquire()
+        self.interrupts["main"] = 1
+        self.interrupts["set_for_speed"] = 1
+        self.lock.release()
+    def getForSpeed(self):
+        return self.forSpeedSlider.get()
     def run(self):
         self.window = MainWindow()
         self.window.geometry('{0}x{1}'.format(self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
@@ -103,7 +112,7 @@ class View(Thread):
 
         # motion
         self.motionFrameTitleLabel = tk.Label(self.motionFrame, text="Motion")
-        self.forSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150)
+        self.forSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, command=self.forSpeedSliderMove)
         self.rotSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, orient=tk.HORIZONTAL)
         
         self.motionFrameTitleLabel.pack()
