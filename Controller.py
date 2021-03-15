@@ -57,7 +57,7 @@ class MotionThread(Thread):
 class Controller(Thread):
     view = None
     streamer = None
-    motion = Motion(HBridges().TB6612FNG)
+    
 
     streamThread = None
 
@@ -65,7 +65,8 @@ class Controller(Thread):
         Thread.__init__(self)
         self.view = View()
         self.view.start() 
-        
+        '''
+        self.motion = Motion(HBridges().TB6612FNG)        
         self.motion.startDriving(1000, 1)
         time.sleep(1)
         self.motion.startDriving(1000, 0)
@@ -75,7 +76,7 @@ class Controller(Thread):
         self.motion.stopRotating()
         self.motion.startRotating(1000, 0)
         time.sleep(2)
-        self.motion.stopRotating()
+        self.motion.stopRotating()'''
         
         self.streamThread = StreamThread(self.view)
         self.motionThread = MotionThread(self.view)
@@ -100,4 +101,5 @@ class Controller(Thread):
                         self.streamThread.stop()
                         break
         finally:
-            self.motion.resetPinModes()
+            #self.motion.resetPinModes()
+            pass

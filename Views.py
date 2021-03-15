@@ -103,9 +103,11 @@ class View(Thread):
 
         # motion
         self.motionFrameTitleLabel = tk.Label(self.motionFrame, text="Motion")
-        self.moveForwardButton = tk.Label(self.motionFrame, text="Forward", bg='gray', height=self.BUTTON_HEIGHT, width=self.BUTTON_WIDTH)
-
+        self.forSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150)
+        self.rotSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, orient=tk.HORIZONTAL)
+        
         self.motionFrameTitleLabel.pack()
-        self.moveForwardButton.pack()
+        self.forSpeedSlider.pack()
+        self.rotSpeedSlider.pack()
 
         self.window.mainloop()
