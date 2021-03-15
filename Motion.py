@@ -8,14 +8,6 @@ import logging
 import os
 
 class Motion:
-    LForwardPin = None
-    LBackwardPin = None
-    LSpeedPin = None
-
-    RForwardPin = None
-    RBackwardPin = None
-    RSpeedPin = None
-
     HIGH = 1
     LOW = 0
 
@@ -23,38 +15,28 @@ class Motion:
         filename = confFiles[chip]
         with open(filename) as f:
             pinMap = json.load(f)
-        self.LForwardPin = pinMap["input1"]
-        self.LBackwardPin = pinMap["input2"]
-        self.LSpeedPin = pinMap["enable1"]
+        LForwardPin = pinMap["input1"]
+        LBackwardPin = pinMap["input2"]
+        LSpeedPin = pinMap["enable1"]
 
-        self.RForwardPin = pinMap["input3"]
-        self.RBackwardPin = pinMap["input4"]
-        self.RSpeedPin = pinMap["enable2"]
-
-        gpio_mode_cmd = "gpio mode "
-        inputs_mode = "out"
-        enable_mode = "pwm"
-
-        self.setPinMode(self.LForwardPin, inputs_mode)
-        self.setPinMode(self.LBackwardPin, inputs_mode)
-        self.setPinMode(self.RForwardPin, inputs_mode)
-        self.setPinMode(self.RBackwardPin, inputs_mode)
-
-        self.setPinMode(self.LSpeedPin, enable_mode)
-        self.setPinMode(self.RSpeedPin, enable_mode)
+        RForwardPin = pinMap["input3"]
+        RBackwardPin = pinMap["input4"]
+        RSpeedPin = pinMap["enable2"]
 
         self.motorTable = [
             {
-                "forPin" : self.LForwardPin,
-                "backPin" : self.LBackwardPin,
-                "speedPin" : self.LSpeedPin
+                "forPin" : LForwardPin,
+                "backPin" : LBackwardPin,
+                "speedPin" : LSpeedPin
             },
             {
-                "forPin" : self.RForwardPin,
-                "backPin" : self.RBackwardPin,
-                "speedPin" : self.RSpeedPin
+                "forPin" : RForwardPin,
+                "backPin" : RBackwardPin,
+                "speedPin" : RSpeedPin
             }
         ]
+
+        self.setupPinModes()
     
     def setPinMode(self, pin, mode):
         cmd = "gpio mode " + str(pin) + " " + mode
@@ -71,15 +53,28 @@ class Motion:
         print(cmd)
         os.system(cmd)
 
-    def resetPinModes(self):
-        in_mode = "in"
-        self.setPinMode(self.LForwardPin, in_mode)
-        self.setPinMode(self.LBackwardPin, in_mode)
-        self.setPinMode(self.RForwardPin, in_mode)
-        self.setPinMode(self.RBackwardPin, in_mode)
+    def setupPinModes(self):
+        inputs_mode = "out"
+        enable_mode = "pwm"
 
-        self.setPinMode(self.LSpeedPin, in_mode)
-        self.setPinMode(self.RSpeedPin, in_mode)
+        self.setPinMode(self.motorTable[0]["forPin"], inputs_mode)
+        self.setPinMode(self.motorTable[0]["backPin"], inputs_mode)
+        self.setPinMode(self.motorTable[1]["forPin"], inputs_mode)
+        self.setPinMode(self.motorTable[1]["backPin"], inputs_mode)
+
+        self.setPinMode(self.motorTable[0]["speedPin"], enable_mode)
+        self.setPinMode(self.motorTable[1]["speedPin"], enable_mode)
+
+    def resetPinModes(self):
+        self.stopDriving()
+        in_mode = "in"
+        self.setPinMode(self.motorTable[0]["forPin"], in_mode)
+        self.setPinMode(self.motorTable[0]["backPin"], in_mode)
+        self.setPinMode(self.motorTable[1]["forPin"], in_mode)
+        self.setPinMode(self.motorTable[1]["backPin"], in_mode)
+
+        self.setPinMode(self.motorTable[0]["speedPin"], in_mode)
+        self.setPinMode(self.motorTable[1]["speedPin"], in_mode)
     
     def setMotorDirection(self, motor, dir): # motor: 0 = left, 1 = right; dir: 1 = forward, 0 = backward
         if dir == 0:
@@ -90,12 +85,8 @@ class Motion:
             self.writePinValue(self.motorTable[motor]["backPin"], self.LOW)
 
     def resetMotorDirection(self, motor):
-        if motor == 0:
-            self.writePinValue(self.motorTable[motor]["forPin"], self.LOW)
-            self.writePinValue(self.motorTable[motor]["backPin"], self.LOW)
-        else:
-            self.writePinValue(self.motorTable[motor]["forPin"], self.LOW)
-            self.writePinValue(self.motorTable[motor]["backPin"], self.LOW)
+        self.writePinValue(self.motorTable[motor]["forPin"], self.LOW)
+        self.writePinValue(self.motorTable[motor]["backPin"], self.LOW)
     
     def setSpeed(self, motor, speed): # motor: 0 = left, 1 = right
         self.setPwmValue(self.motorTable[motor]["speedPin"], speed)

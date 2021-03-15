@@ -82,7 +82,11 @@ class View(Thread):
 
         self.cameraFrame = tk.Frame(self.window, relief=tk.RAISED, borderwidth=1)
         self.cameraFrame.pack(side=tk.LEFT)
+
+        self.motionFrame = tk.Frame(self.window, relief=tk.RAISED, borderwidth=1)
+        self.motionFrame.pack(side=tk.LEFT)
         
+        # camera
         self.cameraFrameTitleLabel = tk.Label(self.cameraFrame, text="Camera")
         self.targetSocketEntryLabel = tk.Label(self.cameraFrame, text="Target UDP socket:")
         self.targetSocketEntry = tk.Entry(self.cameraFrame,textvariable=(self.targetUdpIp + str(self.targetUdpPort)))
@@ -96,5 +100,12 @@ class View(Thread):
         self.connectButton.pack()
         self.abortConnection.pack()
         self.exitProgramButtion.pack()
+
+        # motion
+        self.motionFrameTitleLabel = tk.Label(self.motionFrame, text="Motion")
+        self.moveForwardButton = tk.Label(self.motionFrame, text="Forward", bg='gray', height=self.BUTTON_HEIGHT, width=self.BUTTON_WIDTH)
+
+        self.motionFrameTitleLabel.pack()
+        self.moveForwardButton.pack()
 
         self.window.mainloop()
