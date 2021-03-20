@@ -2,10 +2,8 @@ from HBridges import HBridges
 from PinMaps import confFiles
 import RPi.GPIO as GPIO
 import json
-import time
-import threading
-import logging
 import os
+import subprocess
 
 class Motion:
     HIGH = 1
@@ -37,21 +35,23 @@ class Motion:
         ]
 
         self.setupPinModes()
+        self.setSpeed(0,0)
+        self.setSpeed(1,0)
     
     def setPinMode(self, pin, mode):
         cmd = "gpio mode " + str(pin) + " " + mode
         print(cmd)
-        os.system(cmd)
+        subprocess.run(cmd, shell=True)
 
     def writePinValue(self, pin, value):
         cmd = "gpio write " + str(pin) + " " + str(value)
         print(cmd)
-        os.system(cmd)
+        subprocess.run(cmd, shell=True)
     
     def setPwmValue(self, pin, value):
         cmd = "gpio pwm " + str(pin) + " " + str(value)
         print(cmd)
-        os.system(cmd)
+        subprocess.run(cmd, shell=True)
 
     def setupPinModes(self):
         inputs_mode = "out"

@@ -1,3 +1,4 @@
+from re import S
 from CameraStreamer import PiCameraStreamer
 from Motion import Motion
 from HBridges import HBridges
@@ -67,6 +68,7 @@ class MotionThread(Thread):
 class Controller(Thread):
     view = None
     streamer = None
+    maxSpeed = 500
     
 
     streamThread = None
@@ -104,23 +106,35 @@ class Controller(Thread):
                         self.streamThread.targetPort = self.view.targetUdpPort
                         self.streamThread.startUdp()
                         self.view.interrupts["connect_camera"] = 0
+                        self.view.interrupts["main"] = 0
                     if self.view.interrupts["abort_connection"] == 1:
                         self.streamThread.stopUdp()
                         self.view.interrupts["abort_connection"] = 0
+                        self.view.interrupts["main"] = 0
                     if self.view.closed == 1:
                         print("Closing")
                         self.streamThread.stop()
+                        self.view.interrupts["main"] = 0
                         break
-                    if self.view.interrupts["set_for_speed"] == 1:
+                    if self.view.interrupts["set_speed"] == 1:
                         speed = self.view.getForSpeed()
-                        dir = 0
-                        if speed > 0:
-                            dir = 1
-                        speed = abs(speed)
-                        self.motion.startDriving(10.24*speed, dir)
-                        self.view.interrupts["set_for_speed"] = 0
-                self.view.interrupts["main"] = 0
+                        rotSpeed = self.view.getRotSpeed()
+                        if speed < 0:
+                            rotSpeed = -rotSpeed
+                        speeds = [speed - rotSpeed, speed + rotSpeed]
+                        for motorNr, sp in enumerate(speeds):
+                            dir = 0
+                            if sp > 0:
+                                dir = 1
+                            self.motion.setMotorDirection(motorNr,dir)
+                            motorSpeed = min(self.maxSpeed, self.maxSpeed*abs(sp) / 100)
+                            print(motorSpeed)
+                            self.motion.setSpeed(motorNr, motorSpeed)
+                        self.view.interrupts["set_speed"] = 0
+                        self.view.interrupts["main"] = 0
+                
                     
         finally:
             self.motion.resetPinModes()
             pass
+ 

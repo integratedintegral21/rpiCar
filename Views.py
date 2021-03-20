@@ -3,6 +3,7 @@ import tkinter as tk
 from threading import Thread, Lock
 from tkinter import messagebox
 import re
+import time
 
 class MainWindow(tk.Tk):
     pass
@@ -20,6 +21,17 @@ class View(Thread):
 
     closed = 0
     cmd = None
+
+    forwardKey = 'w'
+    backwardKey = 's'
+    leftKey = 'a'
+    rightKey = 'd'
+    stopKey = 'x'
+    stopRotKey = 'z'
+    stopAllKey = 'c'
+
+    linearSpeed = 0
+    rotSpeed = 0
     
     lock = Lock()
 
@@ -29,8 +41,7 @@ class View(Thread):
             "main": 0,
             "connect_camera": 0,
             "abort_connection": 0,
-            "set_for_speed" : 0,
-            "set_rot_speed" : 0
+            "set_speed" : 0,
         }
     
     def verifySocket(self):
@@ -76,13 +87,49 @@ class View(Thread):
         self.interrupts["main"] = 1
         self.closed = 1
         self.lock.release()
-    def forSpeedSliderMove(self,a):
+    def steeringKeyPressed(self,event):
         self.lock.acquire()
+        if event.char == self.forwardKey:
+            print("Linear speed set to +max")
+            self.linearSpeed = 100
+        if event.char == self.backwardKey:
+            print("Linear speed set to -max")
+            self.linearSpeed = -100
+        if event.char == self.stopKey or event.char == self.stopAllKey:
+            print("Linear speed set to 0")
+            self.linearSpeed = 0        
+        if event.char == self.stopRotKey or event.char == self.stopAllKey:
+            print("Angular speed set to 0")
+            self.rotSpeed = 0        
+        if event.char == self.leftKey :
+            print("Angular speed set to 100")
+            self.rotSpeed = 100
+        if event.char == self.rightKey:
+            print("Angular speed set to -100")
+            self.rotSpeed = -100
         self.interrupts["main"] = 1
-        self.interrupts["set_for_speed"] = 1
+        self.interrupts["set_speed"] = 1
         self.lock.release()
+    
+    def steeringKeyRelease(self, event):
+        self.lock.acquire()
+        if event.char == self.forwardKey:
+            print("Linear speed set to 0")
+            self.linearSpeed = 0
+            self.interrupts["main"] = 1
+            self.interrupts["set_speed"] = 1
+        if event.char == self.backwardKey:
+            print("Linear speed set to 0")
+            self.linearSpeed = 0
+            self.interrupts["main"] = 1
+            self.interrupts["set_speed"] = 1
+        
+        self.lock.release()
+
     def getForSpeed(self):
-        return self.forSpeedSlider.get()
+        return self.linearSpeed
+    def getRotSpeed(self):
+        return self.rotSpeed
     def run(self):
         self.window = MainWindow()
         self.window.geometry('{0}x{1}'.format(self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
@@ -112,11 +159,22 @@ class View(Thread):
 
         # motion
         self.motionFrameTitleLabel = tk.Label(self.motionFrame, text="Motion")
-        self.forSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, command=self.forSpeedSliderMove)
-        self.rotSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, orient=tk.HORIZONTAL)
+        #self.forSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150)
+        #self.rotSpeedSlider = tk.Scale(self.motionFrame,from_=100, to=-100,length=150, orient=tk.HORIZONTAL)
         
         self.motionFrameTitleLabel.pack()
-        self.forSpeedSlider.pack()
-        self.rotSpeedSlider.pack()
+        #self.forSpeedSlider.pack()
+        #self.rotSpeedSlider.pack()
+        
+        self.window.bind('<KeyPress-' + self.forwardKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.backwardKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.stopKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.stopRotKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.leftKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.rightKey + '>', self.steeringKeyPressed)
+        self.window.bind('<KeyPress-' + self.stopAllKey + '>', self.steeringKeyPressed)
 
+        #self.window.bind('<KeyRelease-' + self.forwardKey + '>', self.steeringKeyRelease)
+        #self.window.bind('<KeyRelease-' + self.backwardKey + '>', self.steeringKeyRelease)
         self.window.mainloop()
+
