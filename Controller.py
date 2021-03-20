@@ -68,8 +68,8 @@ class MotionThread(Thread):
 class Controller(Thread):
     view = None
     streamer = None
-    maxSpeed = 500
-    
+    maxSpeed = 1000
+    maxRotSpeed = 500
 
     streamThread = None
 
@@ -118,7 +118,7 @@ class Controller(Thread):
                         break
                     if self.view.interrupts["set_speed"] == 1:
                         speed = self.view.getForSpeed()
-                        rotSpeed = self.view.getRotSpeed()
+                        rotSpeed = self.view.getRotSpeed() * self.maxRotSpeed / self.maxSpeed
                         if speed < 0:
                             rotSpeed = -rotSpeed
                         speeds = [speed - rotSpeed, speed + rotSpeed]
